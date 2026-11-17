@@ -4,7 +4,7 @@ A from-scratch Python implementation of the Finite Element Method (FEM) to solve
 
 > **Academic context:** developed for the *ANN1 — Méthode des éléments finis* course (ENSTA Paris, 2026–2027), in collaboration with **David Bernal**.
 
-![Stokes flow in the baffled channel](images/stokes_hero.png)
+![Stokes flow in the baffled channel](images/fig_stokesflow_baffledchannel.png)
 *Velocity field and pressure for Stokes flow in a channel with baffles.*
 
 ---
@@ -114,7 +114,7 @@ We first implemented the problem $-\Delta u + u = f$ (Neumann, then Dirichlet) a
 
 1. **Mesh.** Second-order triangular meshes are generated with the Gmsh Python API, so nodes sit on the triangle vertices *and* on the edge midpoints.
 
-   ![P2 mesh](images/p2_mesh.png)
+   ![P2 mesh](images/fig_p2mesh.png)
    *$P^2$ mesh of $]0,3[\times]0,2[$. Dots mark the degrees of freedom (vertices and edge midpoints).*
 
 2. **Elementary matrices.** Each triangle $T_\ell$ is mapped from the reference triangle $\hat T$ through the affine map $\mathcal{F}_\ell(\hat M) = \mathcal{B}_\ell \hat M + b_\ell$, with
@@ -140,7 +140,7 @@ We first implemented the problem $-\Delta u + u = f$ (Neumann, then Dirichlet) a
 
 3. **Global assembly.** Elementary matrices are scattered into global sparse matrices using the node indexing of the mesh. The matrices are sparse, so they are cheap to store and to solve.
 
-   ![Sparsity pattern](images/sparsity_pattern.png)
+   ![Sparsity pattern](images/fig_KMsparsity.png)
    *Sparsity pattern of $\mathbb{K}$ and $\mathbb{M}$.*
 
 4. **Solve.** The sparse linear system is solved with a direct sparse solver (`src.sparse_solve`).
@@ -152,7 +152,7 @@ We first implemented the problem $-\Delta u + u = f$ (Neumann, then Dirichlet) a
    \lvert u - u_h \rvert_{1} \simeq \sqrt{\vec E^T \mathbb{K} \vec E}, \qquad \vec E = \vec U_{ex} - \vec U .
    $$
 
-   ![Manufactured solution](images/poisson_exact_solution.png)
+   ![Manufactured solution](images/fig_exactsolution_poisson.png)
    *Manufactured solution $u = 3\cos(\pi x)\cos(2\pi y)$ and its FEM approximation.*
 
 6. **Dirichlet conditions by pseudo-elimination.** Rows of $\mathbb{A}$ associated with boundary nodes are zeroed, the diagonal is set to $\rho = 1$, and the right-hand side is set to $0$ (homogeneous) or to $g(M_J)$ (non-homogeneous):
@@ -191,7 +191,7 @@ The Stokes solver reuses the same pipeline, with block assembly:
 | Neumann | 3.86 | 2.68 |
 | Homogeneous Dirichlet | 3.76 | 2.66 |
 
-![Poisson convergence](images/poisson_convergence.png)
+![Poisson convergence](images/fig_poisson_convergence.png)
 *Log–log convergence of the $L^2$ and $H^1$ errors for the $P^2$ Poisson solver.*
 
 Slopes are at least as good as the theoretical orders $h^{k+1}$ in $L^2$ and $h^k$ in $H^1$ for $P^k$ elements ($k=2$), and one order better than the $P^1$ elements of the previous lab. They are slightly above theory because we measure $\pi_h u - u_h$ (distance to the *interpolant*), which does not contain the interpolation error inside the triangles. The Dirichlet condition is imposed exactly at the boundary nodes, so it does not degrade the order.
@@ -210,21 +210,21 @@ We recover the parabolic profile and an affine pressure. The errors are at **mac
 
 #### Backward-facing step
 
-![Backward-facing step](images/step_solution.png)
+![Backward-facing step](images/fig_stokes_backwardfacingstep.png)
 *Velocity and pressure in the backward-facing step.*
 
 The solution is qualitatively consistent with the physics: high pressure at the inlet, zero velocity on the walls (no-slip), and accelerated flow in the narrow section. We also verified **mass conservation** quantitatively: inflow $= 2/3 \approx 0.6667$ and outflow $\approx 0.6641$ (the small gap is a discretisation effect).
 
 #### Baffled channel (viscosity study)
 
-![Baffled channel](images/baffles_solution.png)
+![Baffled channel](images/fig_stokesflow_baffledchannel.png)
 *Flow weaving around the baffles ($\nu = 1$ and $\nu = 0.01$ give the same velocity field).*
 
 In this more complex flow the fluid weaves around the obstacles and accelerates as it passes them. Since $\mathbf{f} = 0$ and the velocity is prescribed on the boundary, the velocity field is **independent of $\nu$** and the pressure scales linearly with it: if $(\mathbf{u}, p)$ solves the problem for $\nu = 1$, then $(\mathbf{u}, \nu p)$ solves it for viscosity $\nu$. We checked this numerically: the velocity difference between $\nu=1$ and $\nu=0.01$ is $\sim 10^{-14}$, and $p_{\nu=1} - 100\,p_{\nu=0.01} \sim 10^{-12}$.
 
 #### L-shaped domain (re-entrant corner)
 
-![L-shaped domain](images/l_shape_solution.png)
+![L-shaped domain](images/fig_stokes_Lshaped_domain.png)
 *Velocity and pressure around the re-entrant corner of the L-shaped domain.*
 
 This domain was implemented to observe the behaviour near a corner. The solution varies non-linearly close to the re-entrant corner because the solution is not regular there (a geometric singularity). Locally refining the mesh in that region would be needed to recover optimal accuracy.
@@ -250,7 +250,7 @@ The velocity vanishes on the whole boundary ($\Gamma_D = \Gamma$, $\Gamma_N = \e
 | $\lvert \mathbf{u} - \mathbf{u}_h \rvert_{1}$ | 2.55 | 2 |
 | $\lVert p - p_h \rVert_{L^2}$ | 2.58 | 2 |
 
-![Stokes convergence](images/stokes_convergence.png)
+![Stokes convergence](images/fig_stokes_convergence.png)
 *Log–log convergence of the Stokes solver for $h \in \{0.2, 0.1, 0.05, 0.025\}$.*
 
 All orders are at least the theoretical Taylor–Hood orders. This validates the whole chain (elementary matrices, assembly, pseudo-elimination, right-hand side). The slightly higher observed orders are consistent with a very smooth solution and with theory providing guaranteed upper bounds.
@@ -263,7 +263,7 @@ To illustrate the LBB condition, we also adapted the code to $P^1$–$P^1$ eleme
 
 On the Poiseuille flow, the velocity error decreases with $h$ (from $\sim 10^{-2}$ to $\sim 10^{-4}$ between $h = 0.2$ and $h = 0.025$), but **the pressure does not converge**: its maximum error stays between 0.3 and 3 for an exact pressure ranging from 0 to 2, with vertex-to-vertex oscillations.
 
-![P1-P1 pressure](images/p1p1_pressure.png)
+![P1-P1 pressure](images/fig_stokes_p1p1_pressure.png)
 *Left: $P^1$–$P^1$ pressure (spurious oscillations). Right: exact pressure.*
 
 The pair fails the discrete inf-sup condition: there exist oscillating pressures $q_h$ with $\int_\Omega q_h \nabla\cdot\mathbf{v}_h \approx 0$ for every $\mathbf{v}_h$, so the scheme cannot control them. With Taylor–Hood, the extra edge-midpoint degrees of freedom enrich the velocity space, the condition holds, and the pressure converges at the expected order.

@@ -112,57 +112,57 @@ The solver was built incrementally, validating every layer before adding the nex
 
 We first implemented the problem $`-\Delta u + u = f`$ (Neumann, then Dirichlet) as a testbed for all the FEM machinery.
 
-1. **Mesh.** Second-order triangular meshes are generated with the Gmsh Python API, so nodes sit on the triangle vertices *and* on the edge midpoints.
+**Step 1 — Mesh.** Second-order triangular meshes are generated with the Gmsh Python API, so nodes sit on the triangle vertices *and* on the edge midpoints.
 
-   ![P2 mesh](images/fig_p2mesh.png)
-   *$`P^2`$ mesh of $`]0,3[\times]0,2[`$. Dots mark the degrees of freedom (vertices and edge midpoints).*
+![P2 mesh](images/fig_p2mesh.png)
+*$`P^2`$ mesh of $`]0,3[\times]0,2[`$. Dots mark the degrees of freedom (vertices and edge midpoints).*
 
-2. **Elementary matrices.** Each triangle $`T_\ell`$ is mapped from the reference triangle $`\hat T`$ through the affine map $`\mathcal{F}_\ell(\hat M) = \mathcal{B}_\ell \hat M + b_\ell`$, with
+**Step 2 — Elementary matrices.** Each triangle $`T_\ell`$ is mapped from the reference triangle $`\hat T`$ through the affine map $`\mathcal{F}_\ell(\hat M) = \mathcal{B}_\ell \hat M + b_\ell`$, with
 
-   ```math
-   \mathcal{B}_\ell = \begin{bmatrix} x_2 - x_1 & x_3 - x_1 \\ y_2 - y_1 & y_3 - y_1 \end{bmatrix}, \qquad b_\ell = \begin{bmatrix} x_1 \\ y_1 \end{bmatrix}.
-   ```
+```math
+\mathcal{B}_\ell = \begin{bmatrix} x_2 - x_1 & x_3 - x_1 \\ y_2 - y_1 & y_3 - y_1 \end{bmatrix}, \qquad b_\ell = \begin{bmatrix} x_1 \\ y_1 \end{bmatrix}.
+```
 
-   The $`P^2`$ basis functions are written with the barycentric coordinates $`\lambda_1, \lambda_2, \lambda_3`$:
+The $`P^2`$ basis functions are written with the barycentric coordinates $`\lambda_1, \lambda_2, \lambda_3`$:
 
-   ```math
-   w_i = \lambda_i (2\lambda_i - 1) \ (i = 1,2,3), \qquad w_4 = 4\lambda_1\lambda_2, \quad w_5 = 4\lambda_2\lambda_3, \quad w_6 = 4\lambda_3\lambda_1 .
-   ```
+```math
+w_i = \lambda_i (2\lambda_i - 1) \ (i = 1,2,3), \qquad w_4 = 4\lambda_1\lambda_2, \quad w_5 = 4\lambda_2\lambda_3, \quad w_6 = 4\lambda_3\lambda_1 .
+```
 
-   Elementary matrices are computed on $`\hat T`$ with numerical quadrature:
+Elementary matrices are computed on $`\hat T`$ with numerical quadrature:
 
-   ```math
-   \mathbb{M}^\ell_{ij} = \lvert\det \mathcal{B}_\ell\rvert \sum_q \hat c^q \, \hat w_i(\hat S^q)\, \hat w_j(\hat S^q), \qquad
-   \mathbb{K}^\ell_{ij} = \lvert\det \mathcal{B}_\ell\rvert \sum_q \hat c^q \, \big[\mathcal{B}_\ell^{-T}\hat\nabla \hat w_i\big]\cdot\big[\mathcal{B}_\ell^{-T}\hat\nabla \hat w_j\big](\hat S^q).
-   ```
+```math
+\mathbb{M}^\ell_{ij} = \lvert\det \mathcal{B}_\ell\rvert \sum_q \hat c^q \, \hat w_i(\hat S^q)\, \hat w_j(\hat S^q), \qquad
+\mathbb{K}^\ell_{ij} = \lvert\det \mathcal{B}_\ell\rvert \sum_q \hat c^q \, \big[\mathcal{B}_\ell^{-T}\hat\nabla \hat w_i\big]\cdot\big[\mathcal{B}_\ell^{-T}\hat\nabla \hat w_j\big](\hat S^q).
+```
 
-   The **6-point rule (order 4)** is exact for the mass matrix (degree-4 integrand), and the **3-point rule (order 2)** is exact for the stiffness and coupling matrices (degree-2 integrands).
+The **6-point rule (order 4)** is exact for the mass matrix (degree-4 integrand), and the **3-point rule (order 2)** is exact for the stiffness and coupling matrices (degree-2 integrands).
 
-3. **Global assembly.** Elementary matrices are scattered into global sparse matrices using the node indexing of the mesh. The matrices are sparse, so they are cheap to store and to solve.
+**Step 3 — Global assembly.** Elementary matrices are scattered into global sparse matrices using the node indexing of the mesh. The matrices are sparse, so they are cheap to store and to solve.
 
-   ![Sparsity pattern](images/fig_KMsparsity.png)
-   *Sparsity pattern of $`\mathbb{K}`$ and $`\mathbb{M}`$.*
+![Sparsity pattern](images/fig_KMsparsity.png)
+*Sparsity pattern of $`\mathbb{K}`$ and $`\mathbb{M}`$.*
 
-4. **Solve.** The sparse linear system is solved with a direct sparse solver (`src.sparse_solve`).
+**Step 4 — Solve.** The sparse linear system is solved with a direct sparse solver (`src.sparse_solve`).
 
-5. **Error study.** We compare against a manufactured trigonometric solution on several mesh sizes, using the matrices themselves to compute the norms:
+**Step 5 — Error study.** We compare against a manufactured trigonometric solution on several mesh sizes, using the matrices themselves to compute the norms:
 
-   ```math
-   \lVert u - u_h \rVert_{L^2} \simeq \sqrt{\vec E^T \mathbb{M} \vec E}, \qquad
-   \lvert u - u_h \rvert_{1} \simeq \sqrt{\vec E^T \mathbb{K} \vec E}, \qquad \vec E = \vec U_{ex} - \vec U .
-   ```
+```math
+\lVert u - u_h \rVert_{L^2} \simeq \sqrt{\vec E^T \mathbb{M} \vec E}, \qquad
+\lvert u - u_h \rvert_{1} \simeq \sqrt{\vec E^T \mathbb{K} \vec E}, \qquad \vec E = \vec U_{ex} - \vec U .
+```
 
-   ![Manufactured solution](images/fig_exactsolution_poisson.png)
-   *Manufactured solution $`u = 3\cos(\pi x)\cos(2\pi y)`$ and its FEM approximation.*
+![Manufactured solution](images/fig_exactsolution_poisson.png)
+*Manufactured solution $`u = 3\cos(\pi x)\cos(2\pi y)`$ and its FEM approximation.*
 
-6. **Dirichlet conditions by pseudo-elimination.** Rows of $`\mathbb{A}`$ associated with boundary nodes are zeroed, the diagonal is set to $`\rho = 1`$, and the right-hand side is set to $`0`$ (homogeneous) or to $`g(M_J)`$ (non-homogeneous):
+**Step 6 — Dirichlet conditions by pseudo-elimination.** Rows of $`\mathbb{A}`$ associated with boundary nodes are zeroed, the diagonal is set to $`\rho = 1`$, and the right-hand side is set to $`0`$ (homogeneous) or to $`g(M_J)`$ (non-homogeneous):
 
-   ```math
-   \tilde{\mathbb{A}} = \begin{bmatrix} \mathbb{A}_{II} & \mathbb{A}_{IB} \\ 0 & \mathbb{I} \end{bmatrix}, \qquad
-   \tilde{L} = \begin{bmatrix} \vec L_I \\ \vec g \end{bmatrix}.
-   ```
+```math
+\tilde{\mathbb{A}} = \begin{bmatrix} \mathbb{A}_{II} & \mathbb{A}_{IB} \\ 0 & \mathbb{I} \end{bmatrix}, \qquad
+\tilde{L} = \begin{bmatrix} \vec L_I \\ \vec g \end{bmatrix}.
+```
 
-   Keeping the block $`\mathbb{A}_{IB}`$ unchanged transfers the boundary contribution to the right-hand side of the interior equations. The matrix is no longer symmetric, which a sparse direct (LU) solver does not mind.
+Keeping the block $`\mathbb{A}_{IB}`$ unchanged transfers the boundary contribution to the right-hand side of the interior equations. The matrix is no longer symmetric, which a sparse direct (LU) solver does not mind.
 
 ### 3.2 Stokes solver ($`P^2`$–$`P^1`$ Taylor–Hood)
 
@@ -174,9 +174,9 @@ The Stokes solver reuses the same pipeline, with block assembly:
 - **Pseudo-elimination.** Applied on $`\Gamma_D`$ for *both* velocity components. The Neumann outlet is natural and needs no treatment.
 - **Validation with Poiseuille flow.** The solver is compared with the exact parabolic solution on $`[0, L_x]\times[0, H]`$:
 
-  ```math
-  u_1 = \frac{G}{2\nu}\, y\,(H - y), \qquad u_2 = 0, \qquad p = G\,(L_x - x).
-  ```
+```math
+u_1 = \frac{G}{2\nu}\, y\,(H - y), \qquad u_2 = 0, \qquad p = G\,(L_x - x).
+```
 
 - **Other domains.** Backward-facing step, baffled channel and L-shaped domain, to observe different physical behaviours.
 

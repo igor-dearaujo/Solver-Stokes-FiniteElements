@@ -191,14 +191,14 @@ The Stokes solver reuses the same pipeline, with block assembly:
 | Neumann | 3.86 | 2.68 |
 | Homogeneous Dirichlet | 3.76 | 2.66 |
 
-![Poisson convergence](images/fig_poisson_convergence.png)
+![Poisson convergence](images/fig_possion_convergence.png)
 *Log–log convergence of the $L^2$ and $H^1$ errors for the $P^2$ Poisson solver.*
 
 Slopes are at least as good as the theoretical orders $h^{k+1}$ in $L^2$ and $h^k$ in $H^1$ for $P^k$ elements ($k=2$), and one order better than the $P^1$ elements of the previous lab. They are slightly above theory because we measure $\pi_h u - u_h$ (distance to the *interpolant*), which does not contain the interpolation error inside the triangles. The Dirichlet condition is imposed exactly at the boundary nodes, so it does not degrade the order.
 
 ### 4.2 Poiseuille flow (validation)
 
-![Poiseuille solution](images/fig_stokes_poiseuille.png)
+![Poiseuille solution](images/fig_stokes_poisseuille.png)
 *Approximate velocity (arrows) and pressure for Poiseuille flow.*
 
 ![Poiseuille errors](images/fig_stokes_error_poisseuille.png)

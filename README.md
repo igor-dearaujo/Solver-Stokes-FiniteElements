@@ -198,10 +198,10 @@ Slopes are at least as good as the theoretical orders $h^{k+1}$ in $L^2$ and $h^
 
 ### 4.2 Poiseuille flow (validation)
 
-![Poiseuille solution](images/poiseuille_solution.png)
+![Poiseuille solution](images/fig_stokes_poiseuille.png)
 *Approximate velocity (arrows) and pressure for Poiseuille flow.*
 
-![Poiseuille errors](images/poiseuille_errors.png)
+![Poiseuille errors](images/fig_stokes_error_poisseuille.png)
 *Differences $u_1 - u_{1h}$, $u_2 - u_{2h}$ and $p - p_h$.*
 
 We recover the parabolic profile and an affine pressure. The errors are at **machine-precision level** ($\sim 10^{-14}$ for the velocity, $\sim 10^{-13}$ for the pressure). This is expected: the exact solution (quadratic velocity, affine pressure) lies *inside* the discrete space $P^2$–$P^1$, so the discrete solution coincides with the exact one. The test therefore validates the assembly, the vertex/node numbering, the pseudo-elimination on both velocity components and the natural outlet condition. It cannot measure a convergence rate, which is why we add the manufactured-solution study below.
